@@ -1,0 +1,1 @@
+CREATE DATABASE detection_notifications;
