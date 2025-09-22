@@ -3,3 +3,7 @@ spring:
     url: ${spring.datasource.url}
     username: ${spring.datasource.username}
     password: ${spring.datasource.password}
+
+authorization:
+  keyName: ${api.key.name}
+  authValue: ${api.key.value}
