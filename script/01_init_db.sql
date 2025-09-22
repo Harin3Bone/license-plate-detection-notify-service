@@ -1,1 +1,1 @@
-CREATE DATABASE detection_notifications;
+CREATE DATABASE detection_notification;
