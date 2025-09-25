@@ -7,3 +7,7 @@ spring:
 authorization:
   keyName: ${api.key.name}
   authValue: ${api.key.value}
+
+logging:
+  level:
+    com.dl.detectionnotifyservice: DEBUG
