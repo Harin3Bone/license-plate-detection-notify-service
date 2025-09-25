@@ -3,6 +3,11 @@ spring:
     url: ${spring.datasource.url}
     username: ${spring.datasource.username}
     password: ${spring.datasource.password}
+  rabbitmq:
+    host: ${rabbit.host}
+    port: ${rabbit.port}
+    username: ${rabbit.username}
+    password: ${rabbit.password}
 
 authorization:
   keyName: ${api.key.name}
