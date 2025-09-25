@@ -8,6 +8,11 @@ spring:
     port: ${rabbit.port}
     username: ${rabbit.username}
     password: ${rabbit.password}
+  minio:
+    url: ${minio.url}
+    accessKey: ${minio.accesskey}
+    secretKey: ${minio.secretkey}
+    bucket: ${minio.bucket}
 
 authorization:
   keyName: ${api.key.name}
