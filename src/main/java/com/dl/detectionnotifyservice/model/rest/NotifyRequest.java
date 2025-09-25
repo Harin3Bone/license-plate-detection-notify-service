@@ -1,4 +1,4 @@
-package com.dl.detectionnotifyservice.model;
+package com.dl.detectionnotifyservice.model.rest;
 
 public record NotifyRequest(
         String licensePlate,
@@ -6,5 +6,4 @@ public record NotifyRequest(
         String remark,
         String vehicleType
 ) {
-
 }
