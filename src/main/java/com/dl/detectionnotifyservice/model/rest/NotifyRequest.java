@@ -2,7 +2,7 @@ package com.dl.detectionnotifyservice.model.rest;
 
 public record NotifyRequest(
         String licensePlate,
-        String imageId,
+        String uploadId,
         String remark,
         String vehicleType
 ) {
