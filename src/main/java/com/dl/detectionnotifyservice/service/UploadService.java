@@ -46,34 +46,44 @@ public class UploadService {
                     .stream(inputStream, inputStream.available(), -1)
                     .build()
             );
-            uploadResponse = new UploadResponse(context.getUploadId(), context.getObjectPath(), Status.SUCCESS.name());
+            uploadResponse = new UploadResponse(
+                    context.getUploadId(), context.getFileId(), context.getContentType(), Status.SUCCESS.name()
+            );
         } catch (Exception e) {
             log.error("Failed to upload file to MinIO: {}", e.getMessage(), e);
-            uploadResponse = new UploadResponse(null, null, Status.FAILURE.name());
+            uploadResponse = new UploadResponse(null, null, null, Status.FAILURE.name());
         }
 
         return uploadResponse;
     }
 
     private UploadContext getObjectPath(String directory, String fileName) {
-        // Prepare directory name
-        String uploadId;
+        // Prepare directory name as upload ID
+        UUID uploadId;
         if (ObjectUtils.isEmpty(directory)) {
-            uploadId = UUID.randomUUID().toString();
+            uploadId = UUID.randomUUID();
         } else {
-            uploadId = directory;
+            uploadId = UUID.fromString(directory);
         }
 
-        // Prepare file name
-        String objectPath = FILE_URL_TEMPLATE.formatted(uploadId, UUID.randomUUID(), StringUtils.getFilenameExtension(fileName));
+        // Prepare file name as file ID
+        UUID fileId = UUID.randomUUID();
 
-        return new UploadContext(uploadId, objectPath);
+        // Extract file extension
+        String fileExtension = StringUtils.getFilenameExtension(fileName);
+
+        // Build object path
+        String objectPath = FILE_URL_TEMPLATE.formatted(uploadId, fileId, fileExtension);
+
+        return new UploadContext(uploadId, fileId, fileExtension, objectPath);
     }
 
     @Getter
     @AllArgsConstructor
     private static class UploadContext {
-        String uploadId;
+        UUID uploadId;
+        UUID fileId;
+        String contentType;
         String objectPath;
     }
 

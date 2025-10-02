@@ -2,14 +2,13 @@ package com.dl.detectionnotifyservice.config;
 
 import com.dl.detectionnotifyservice.properties.MinioProperties;
 import io.minio.MinioClient;
-import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+@Slf4j
 @Configuration
 public class MinioConfig {
-
-    public static final String BUCKET_NAME = "detection-notification";
 
     private final MinioProperties minioProperties;
 
@@ -19,6 +18,7 @@ public class MinioConfig {
 
     @Bean
     public MinioClient minioClient() {
+        log.debug("Begin initializing MinIO client.");
         return MinioClient.builder()
                 .endpoint(minioProperties.getUrl())
                 .credentials(minioProperties.getAccessKey(), minioProperties.getSecretKey())
