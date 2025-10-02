@@ -21,6 +21,6 @@ public class NotifyController {
     @PostMapping("/v1/send")
     public NotifyResponse sendNotify(@RequestBody NotifyRequest request) {
         log.info("Received request to send notification");
-        return notifyService.sendNotification(request);
+        return notifyService.publishNotifyPayload(request);
     }
 }
