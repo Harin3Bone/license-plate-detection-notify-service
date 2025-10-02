@@ -15,13 +15,13 @@ import static com.dl.detectionnotifyservice.config.RabbitMQConfig.NOTIFY_QUEUE;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class NotifyHandler {
+public class NotifyHandler implements  BaseHandler<NotifyPayload> {
 
     private final NotifyService notifyService;
 
     @RabbitHandler
     @RabbitListener(queues = NOTIFY_QUEUE)
-    public void consumeNotifyQueue(NotifyPayload payload) {
+    public void consume(NotifyPayload payload) {
         log.info("Starting notify message.");
         log.debug("Save notify history to database.");
         NotifyHistory history = notifyService.saveNotifyHistory(payload);
