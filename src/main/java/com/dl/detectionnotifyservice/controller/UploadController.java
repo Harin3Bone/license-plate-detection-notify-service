@@ -1,5 +1,6 @@
 package com.dl.detectionnotifyservice.controller;
 
+import com.dl.detectionnotifyservice.constant.Status;
 import com.dl.detectionnotifyservice.model.rest.UploadResponse;
 import com.dl.detectionnotifyservice.service.UploadService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,11 @@ public class UploadController {
             @RequestPart(required = false) String directoryId,
             @RequestPart MultipartFile image
     ) {
-        return uploadService.uploadFile(directoryId, image);
+        UploadResponse response = uploadService.uploadFile(directoryId, image);
+        if (Status.SUCCESS.name().equals(response.status())) {
+            uploadService.publishMediaPayload(response);
+        }
+
+        return response;
     }
 }

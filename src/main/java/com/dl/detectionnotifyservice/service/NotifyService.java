@@ -27,8 +27,8 @@ public class NotifyService {
 
     private static final String NOTIFY_MSG_TEMPLATE = "License Plate \"%s\" has been detected illegally parked at %s";
 
-    private final RabbitTemplate rabbitTemplate;
     private final Queue notifyQueue;
+    private final RabbitTemplate rabbitTemplate;
 
     private final NotifyHistoryRepository notifyHistoryRepository;
     private final Clock systemClock;
@@ -62,7 +62,7 @@ public class NotifyService {
 
     @Transactional
     public NotifyHistory saveNotifyHistory(NotifyPayload payload) {
-        NotifyHistory history = buildNotifyHistory(payload);
+        NotifyHistory history = mapToEntity(payload);
         notifyHistoryRepository.save(history);
 
         return history;
@@ -77,19 +77,19 @@ public class NotifyService {
         notifyHistoryRepository.save(history);
     }
 
-    private NotifyHistory buildNotifyHistory(NotifyPayload payload) {
-        NotifyHistory history = new NotifyHistory();
-        history.setHistoryId(payload.getNotifyId());
-        history.setLicensePlate(payload.getLicensePlate());
-        history.setNotifyMessage(payload.getNotifyMessage());
-        history.setUploadId(payload.getUploadId());
-        history.setRemark(payload.getRemark());
-        history.setStatus(payload.getStatus());
-        history.setVehicleType(payload.getVehicleType());
-        history.setCreateTimestamp(payload.getCurrentDateTime());
-        history.setLastUpdatedTimestamp(payload.getCurrentDateTime());
+    private NotifyHistory mapToEntity(NotifyPayload payload) {
+        NotifyHistory entity = new NotifyHistory();
+        entity.setHistoryId(payload.getNotifyId());
+        entity.setLicensePlate(payload.getLicensePlate());
+        entity.setNotifyMessage(payload.getNotifyMessage());
+        entity.setUploadId(payload.getUploadId());
+        entity.setRemark(payload.getRemark());
+        entity.setStatus(payload.getStatus());
+        entity.setVehicleType(payload.getVehicleType());
+        entity.setCreateTimestamp(payload.getCurrentDateTime());
+        entity.setLastUpdatedTimestamp(payload.getCurrentDateTime());
 
-        return history;
+        return entity;
     }
 
     public Status pushNotification(String message) {
