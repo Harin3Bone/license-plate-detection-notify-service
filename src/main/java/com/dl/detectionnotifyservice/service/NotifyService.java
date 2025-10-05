@@ -8,6 +8,9 @@ import com.dl.detectionnotifyservice.model.rest.NotifyRequest;
 import com.dl.detectionnotifyservice.model.rest.NotifyResponse;
 import com.dl.detectionnotifyservice.repository.NotifyHistoryRepository;
 import com.dl.detectionnotifyservice.util.DateFormatUtil;
+import discord4j.common.util.Snowflake;
+import discord4j.core.GatewayDiscordClient;
+import discord4j.core.object.entity.channel.Channel;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,10 +28,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class NotifyService {
 
-    private static final String NOTIFY_MSG_TEMPLATE = "License Plate \"%s\" has been detected illegally parked at %s";
+    private static final String NOTIFY_MSG_TEMPLATE_TH = "Vehicle license plate \"%s\" has been detected illegally parked at %s";
+    private static final String NOTIFY_MSG_TEMPLATE_EN = "พาหนะป้ายทะเบียน \"%s\" ถูกตรวจพบว่ามีการจอดในพื้นที่ผิดกฏหมาย ณ เวลา %s";
 
     private final Queue notifyQueue;
     private final RabbitTemplate rabbitTemplate;
+    private final GatewayDiscordClient discordClient;
+    private final Snowflake gatewayDiscordChannel;
 
     private final NotifyHistoryRepository notifyHistoryRepository;
     private final Clock systemClock;
@@ -46,6 +52,9 @@ public class NotifyService {
 
     private NotifyPayload buildPayload(NotifyRequest request) {
         ZonedDateTime currentDateTime = ZonedDateTime.now(systemClock);
+        String notifyMessage = ObjectUtils.isEmpty(request.language()) || request.language().equalsIgnoreCase("th")
+                ? String.format(NOTIFY_MSG_TEMPLATE_TH, request.licensePlate(), DateFormatUtil.zonedDateTimeToString(currentDateTime, systemClock.getZone()))
+                : String.format(NOTIFY_MSG_TEMPLATE_EN, request.licensePlate(), DateFormatUtil.zonedDateTimeToString(currentDateTime, systemClock.getZone()));
 
         NotifyPayload payload = new NotifyPayload();
         payload.setNotifyId(UUID.randomUUID());
@@ -54,7 +63,7 @@ public class NotifyService {
         payload.setRemark(request.remark());
         payload.setVehicleType(ObjectUtils.isEmpty(request.vehicleType()) ? VehicleType.CAR.name() : VehicleType.fromString(request.vehicleType()).name());
         payload.setStatus(Status.PENDING.name());
-        payload.setNotifyMessage(String.format(NOTIFY_MSG_TEMPLATE, request.licensePlate(), DateFormatUtil.zonedDateTimeToString(currentDateTime, systemClock.getZone())));
+        payload.setNotifyMessage(notifyMessage);
         payload.setCurrentDateTime(currentDateTime);
 
         return payload;
@@ -95,8 +104,14 @@ public class NotifyService {
     public Status pushNotification(String message) {
         Status status;
         try {
+            Channel channel = discordClient.getChannelById(gatewayDiscordChannel).block();
+            if (channel != null) {
+                channel.getRestChannel().createMessage(message).block();
+            }
+
             status = Status.SUCCESS;
         } catch (Exception e) {
+            log.error("Failed to push notification to Discord: {}", e.getMessage(), e);
             status = Status.FAILURE;
         }
 
