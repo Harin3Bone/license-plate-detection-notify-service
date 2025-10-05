@@ -13,3 +13,11 @@ spring:
     accessKey: ${minio.accesskey}
     secretKey: ${minio.secretkey}
     bucket: ${minio.bucket}
+
+authorization:
+  keyName: ${api.key.name}
+  authValue: ${api.key.value}
+
+discord:
+  channelId: ${discord.channel}
+  token: ${discord.token}

@@ -18,6 +18,10 @@ authorization:
   keyName: ${api.key.name}
   authValue: ${api.key.value}
 
+discord:
+  channelId: ${discord.channel}
+  token: ${discord.token}
+
 logging:
   level:
     com.dl.detectionnotifyservice: DEBUG

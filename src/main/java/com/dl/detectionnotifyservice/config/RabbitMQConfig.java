@@ -11,10 +11,16 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
 
     public static final String NOTIFY_QUEUE = "notify-queue";
+    public static final String MEDIA_QUEUE = "media-queue";
 
     @Bean("notifyQueue")
     public Queue notifyQueue() {
         return new Queue(NOTIFY_QUEUE, true);
+    }
+
+    @Bean("mediaQueue")
+    public Queue mediaQueue() {
+        return new Queue(MEDIA_QUEUE, true);
     }
 
     @Bean

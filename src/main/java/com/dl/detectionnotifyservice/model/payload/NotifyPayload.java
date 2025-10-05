@@ -17,7 +17,7 @@ public class NotifyPayload implements Serializable {
 
     private UUID notifyId;
     private String licensePlate;
-    private String imageId;
+    private UUID uploadId;
     private String remark;
     private String vehicleType;
     private String status;

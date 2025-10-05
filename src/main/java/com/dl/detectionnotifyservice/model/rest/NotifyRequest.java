@@ -4,6 +4,7 @@ public record NotifyRequest(
         String licensePlate,
         String uploadId,
         String remark,
-        String vehicleType
+        String vehicleType,
+        String language
 ) {
 }
