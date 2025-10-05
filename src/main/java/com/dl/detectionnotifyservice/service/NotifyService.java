@@ -11,6 +11,7 @@ import com.dl.detectionnotifyservice.util.DateFormatUtil;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.channel.Channel;
+import discord4j.core.object.entity.channel.TextChannel;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +29,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class NotifyService {
 
-    private static final String NOTIFY_MSG_TEMPLATE_TH = "Vehicle license plate \"%s\" has been detected illegally parked at %s";
-    private static final String NOTIFY_MSG_TEMPLATE_EN = "พาหนะป้ายทะเบียน \"%s\" ถูกตรวจพบว่ามีการจอดในพื้นที่ผิดกฏหมาย ณ เวลา %s";
+    private static final String NOTIFY_MSG_TEMPLATE_EN = "Vehicle license plate [%s] has been detected illegally parked at %s";
+    private static final String NOTIFY_MSG_TEMPLATE_TH = "พาหนะป้ายทะเบียน [%s] ถูกตรวจพบว่ามีการจอดในพื้นที่ผิดกฏหมาย ณ เวลา %s";
 
     private final Queue notifyQueue;
     private final RabbitTemplate rabbitTemplate;
