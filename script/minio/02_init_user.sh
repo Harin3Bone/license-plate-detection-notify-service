@@ -2,10 +2,10 @@
 docker exec -it dl_minio /bin/bash
 
 # Create Service user
-mc admin user add myminio detection_svc <YOUR_MINIO_PASSWORD>
+mc admin user add myminio <MINIO_USER> <MINIO_PASSWORD>
 
 # Assign Admin policy to Admin user
-mc admin policy attach myminio readwrite --user detection_svc
+mc admin policy attach myminio readwrite --user <MINIO_USER>
 
 # Exit container
 exit

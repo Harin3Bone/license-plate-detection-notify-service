@@ -1,10 +1,10 @@
 ''# Execute login to rabbitmq container
 docker exec -it dl_rabbitmq /bin/bash
 
-# Create Admin user
-rabbitmqctl add_user detection_svc <YOUR_PASSWORD_HERE>
-rabbitmqctl set_user_tags detection_svc detection_svc
-rabbitmqctl set_permissions -p / detection_admin ".*" ".*" ".*"
+# Create user
+rabbitmqctl add_user <RABBIT_USER> <RABBIT_PASSWORD>
+rabbitmqctl set_user_tags <RABBIT_USER> administrator
+rabbitmqctl set_permissions -p / <RABBIT_USER> ".*" ".*" ".*"
 
 # Exit container
 exit
