@@ -1,1 +1,1 @@
-CREATE DATABASE detection_notification;
+CREATE DATABASE <POSTGRES_DB>;
