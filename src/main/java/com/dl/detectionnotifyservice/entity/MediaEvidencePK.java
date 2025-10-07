@@ -3,6 +3,7 @@ package com.dl.detectionnotifyservice.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.UUID;
@@ -10,6 +11,7 @@ import java.util.UUID;
 @Embeddable
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class MediaEvidencePK {
 
     @Column(name = "upload_id")

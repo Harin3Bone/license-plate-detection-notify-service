@@ -3,7 +3,6 @@ package com.dl.detectionnotifyservice.service;
 import com.dl.detectionnotifyservice.constant.Status;
 import com.dl.detectionnotifyservice.entity.MediaEvidence;
 import com.dl.detectionnotifyservice.entity.MediaEvidencePK;
-import com.dl.detectionnotifyservice.model.payload.NotifyPayload;
 import com.dl.detectionnotifyservice.model.payload.UploadPayload;
 import com.dl.detectionnotifyservice.model.rest.UploadResponse;
 import com.dl.detectionnotifyservice.repository.MediaEvidenceRepository;
@@ -23,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.time.Clock;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -87,12 +85,12 @@ public class UploadService {
         UUID fileId = UUID.randomUUID();
 
         // Extract file extension
-        String fileExtension = StringUtils.getFilenameExtension(fileName);
+        String contentType = StringUtils.getFilenameExtension(fileName);
 
         // Build object path
-        String filePath = FILE_PATH_TEMPLATE.formatted(uploadId, fileId, fileExtension);
+        String filePath = FILE_PATH_TEMPLATE.formatted(uploadId, fileId, contentType);
 
-        return new UploadContext(uploadId, fileId, filePath, fileExtension);
+        return new UploadContext(uploadId, fileId, filePath, contentType);
     }
 
     public void publishMediaPayload(UploadResponse response) {
