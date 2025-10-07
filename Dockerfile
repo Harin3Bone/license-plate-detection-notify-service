@@ -23,8 +23,8 @@ COPY --from=build /app/target/*.jar app.jar
 # Expose the default Spring Boot port
 EXPOSE 8080
 
-# Set environement variables
-ENV SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/your_postgres_db \
+# Set environment variables
+ENV SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/your_postgres_db \
     SPRING_DATASOURCE_USERNAME=your_postgres_user \
     SPRING_DATASOURCE_PASSWORD=your_postgres_password \
     RABBIT_HOST=your_rabbit_host \

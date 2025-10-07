@@ -1,4 +1,4 @@
-''# Execute login to minio container
+# Execute login to minio container
 docker exec -it dl_minio /bin/bash
 
 # Create Service user
@@ -9,4 +9,3 @@ mc admin policy attach myminio readwrite --user <MINIO_USER>
 
 # Exit container
 exit
-

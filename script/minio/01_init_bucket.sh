@@ -1,4 +1,4 @@
-''# Execute login to minio container
+# Execute login to minio container
 docker exec -it dl_minio /bin/bash
 
 # Setup alias for MinIO

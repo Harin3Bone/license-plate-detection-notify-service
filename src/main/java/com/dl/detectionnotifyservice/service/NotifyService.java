@@ -106,8 +106,11 @@ public class NotifyService {
         Status status;
         try {
             Channel channel = discordClient.getChannelById(gatewayDiscordChannel).block();
-            if (channel != null) {
-                channel.getRestChannel().createMessage(message).block();
+            if (channel instanceof TextChannel textChannel) {
+                textChannel.createMessage(message).block();
+            } else {
+                log.error("The specified channel is not a text channel. Cannot send message.");
+                return Status.FAILURE;
             }
 
             status = Status.SUCCESS;

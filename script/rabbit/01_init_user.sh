@@ -1,4 +1,4 @@
-''# Execute login to rabbitmq container
+# Execute login to rabbitmq container
 docker exec -it dl_rabbitmq /bin/bash
 
 # Create user
