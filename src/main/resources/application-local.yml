@@ -3,3 +3,25 @@ spring:
     url: ${spring.datasource.url}
     username: ${spring.datasource.username}
     password: ${spring.datasource.password}
+  rabbitmq:
+    host: ${rabbit.host}
+    port: ${rabbit.port}
+    username: ${rabbit.username}
+    password: ${rabbit.password}
+  minio:
+    url: ${minio.url}
+    accessKey: ${minio.accesskey}
+    secretKey: ${minio.secretkey}
+    bucket: ${minio.bucket}
+
+authorization:
+  keyName: ${api.key.name}
+  authValue: ${api.key.value}
+
+discord:
+  channelId: ${discord.channel}
+  token: ${discord.token}
+
+logging:
+  level:
+    com.dl.detectionnotifyservice: DEBUG

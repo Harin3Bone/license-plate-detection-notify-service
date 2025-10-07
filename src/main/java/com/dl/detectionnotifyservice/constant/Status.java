@@ -1,4 +1,4 @@
-package com.dl.detectionnotifyservice.entity;
+package com.dl.detectionnotifyservice.constant;
 
 public enum Status {
 

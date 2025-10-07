@@ -1,31 +1,48 @@
 package com.dl.detectionnotifyservice.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(schema = "notify_history")
+@Getter
+@Setter
+@NoArgsConstructor
+@Table(name = "notify_history", schema = "public")
 public class NotifyHistory {
 
     @Id
-    private UUID history_id;
+    @Column(name = "history_id", nullable = false)
+    private UUID historyId;
 
-    private String license_plate;
+    @Column(name = "license_plate")
+    private String licensePlate;
 
-    private String notify_message;
+    @Column(name = "notify_message")
+    private String notifyMessage;
 
+    @Column(name = "upload_id")
+    private UUID uploadId;
+
+    @Column(name = "remark")
     private String remark;
 
+    @Column(name = "status")
     private String status;
 
-    private String province;
+    @Column(name = "vehicle_type")
+    private String vehicleType;
 
-    private String vehicle_type;
+    @Column(name = "created_timestamp")
+    private ZonedDateTime createTimestamp;
 
-    private String crated_timestamp;
-
-    private String last_updated_timestamp;
+    @Column(name = "last_updated_timestamp")
+    private ZonedDateTime lastUpdatedTimestamp;
 }

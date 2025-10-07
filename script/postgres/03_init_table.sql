@@ -21,23 +21,25 @@ DROP TABLE IF EXISTS notify_history;
 CREATE TABLE notify_history
 (
     history_id             uuid                     DEFAULT uuid_generate_v4() PRIMARY KEY,
-    license_plate          VARCHAR(20)                                        NOT NULL,
+    license_plate          VARCHAR(100)                                       NOT NULL,
     notify_message         TEXT                                               NOT NULL,
-    image_id               uuid,
+    upload_id              uuid,
     remark                 TEXT,
     status                 VARCHAR(15)                                        NOT NULL,
-    province               VARCHAR(30)                                        NOT NULL,
     vehicle_type           VARCHAR(30)                                        NOT NULL,
     created_timestamp      TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     last_updated_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 -- Init Image Table
-DROP TABLE IF EXISTS image_evidence;
-CREATE TABLE image_evidence
+DROP TABLE IF EXISTS media_evidence;
+CREATE TABLE media_evidence
 (
-    image_id               uuid                     DEFAULT uuid_generate_v4() PRIMARY KEY,
-    image_path             TEXT                                               NOT NULL,
-    created_timestamp      TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    last_updated_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
-)
+    upload_id              uuid                     DEFAULT uuid_generate_v4() NOT NULL,
+    file_id                uuid                     DEFAULT uuid_generate_v4() NOT NULL,
+    file_path              TEXT                                                NOT NULL,
+    content_type           VARCHAR(100)                                        NOT NULL,
+    created_timestamp      TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP  NOT NULL,
+    last_updated_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP  NOT NULL,
+    CONSTRAINT media_evidence_pkey PRIMARY KEY (upload_id, file_id)
+);

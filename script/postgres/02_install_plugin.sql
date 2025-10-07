@@ -3,4 +3,3 @@ CREATE EXTENSION "uuid-ossp";
 
 -- Verify the extension is created
 SELECT uuid_generate_v4();
-
