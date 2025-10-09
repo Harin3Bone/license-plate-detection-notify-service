@@ -60,7 +60,7 @@ public class NotifyService {
         NotifyPayload payload = new NotifyPayload();
         payload.setNotifyId(UUID.randomUUID());
         payload.setLicensePlate(request.licensePlate());
-        payload.setUploadId(UUID.fromString(request.uploadId()));
+        payload.setUploadId(ObjectUtils.isEmpty(request.uploadId()) ? null : UUID.fromString(request.uploadId()));
         payload.setRemark(request.remark());
         payload.setVehicleType(ObjectUtils.isEmpty(request.vehicleType()) ? VehicleType.CAR.name() : VehicleType.fromString(request.vehicleType()).name());
         payload.setStatus(Status.PENDING.name());
