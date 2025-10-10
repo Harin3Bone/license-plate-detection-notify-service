@@ -6,6 +6,7 @@ services:
     container_name: dl_postgres
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
+      - ./script/postgres:/var/lib/scripts
     environment:
       POSTGRES_USER: ${POSTGRES_ROOT_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_ROOT_PASSWORD:-postgres}
@@ -16,6 +17,7 @@ services:
     container_name: dl_rabbitmq
     volumes:
       - ./data/rabbitmq:/var/lib/rabbitmq
+      - ./script/rabbitmq:/var/lib/scripts
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBIT_ROOT_USER:-rabbitmq}
       RABBITMQ_DEFAULT_PASS: ${RABBIT_ROOT_PASSWORD:-rabbitmq}
@@ -27,6 +29,7 @@ services:
     container_name: dl_minio
     volumes:
       - ./data/minio:/data
+      - ./script/minio:/var/lib/scripts
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-miniopassword}

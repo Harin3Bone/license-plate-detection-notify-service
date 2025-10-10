@@ -3,6 +3,7 @@ package com.dl.detectionnotifyservice.service;
 import com.dl.detectionnotifyservice.constant.Status;
 import com.dl.detectionnotifyservice.entity.MediaEvidence;
 import com.dl.detectionnotifyservice.entity.MediaEvidencePK;
+import com.dl.detectionnotifyservice.exception.MediaUploadException;
 import com.dl.detectionnotifyservice.model.payload.UploadPayload;
 import com.dl.detectionnotifyservice.model.rest.UploadResponse;
 import com.dl.detectionnotifyservice.repository.MediaEvidenceRepository;
@@ -42,8 +43,7 @@ public class UploadService {
     private final MediaEvidenceRepository mediaEvidenceRepository;
     private final Clock systemClock;
 
-    public UploadResponse uploadFile(String directory, MultipartFile fileData){
-        UploadResponse uploadResponse;
+    public UploadResponse uploadFile(String directory, MultipartFile fileData) {
         try {
             // Prepare object path
             UploadContext context = getUploadContext(directory, fileData.getOriginalFilename());
@@ -61,15 +61,13 @@ public class UploadService {
             );
 
             // Populate API response
-            uploadResponse = new UploadResponse(
+            return new UploadResponse(
                     context.getUploadId(), context.getFileId(), context.getFilePath(), context.getContentType(), Status.SUCCESS.name()
             );
         } catch (Exception e) {
             log.error("Failed to upload file to MinIO: {}", e.getMessage(), e);
-            uploadResponse = new UploadResponse(null, null, null, null, Status.FAILURE.name());
+            throw new MediaUploadException("Failed to upload file: " + e.getMessage());
         }
-
-        return uploadResponse;
     }
 
     private UploadContext getUploadContext(String directory, String fileName) {
@@ -128,8 +126,6 @@ public class UploadService {
 
         return entity;
     }
-
-
 
     @Getter
     @AllArgsConstructor

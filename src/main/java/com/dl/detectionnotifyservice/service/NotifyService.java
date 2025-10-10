@@ -3,6 +3,7 @@ package com.dl.detectionnotifyservice.service;
 import com.dl.detectionnotifyservice.constant.Status;
 import com.dl.detectionnotifyservice.constant.VehicleType;
 import com.dl.detectionnotifyservice.entity.NotifyHistory;
+import com.dl.detectionnotifyservice.exception.InvalidException;
 import com.dl.detectionnotifyservice.model.payload.NotifyPayload;
 import com.dl.detectionnotifyservice.model.rest.NotifyRequest;
 import com.dl.detectionnotifyservice.model.rest.NotifyResponse;
@@ -41,6 +42,12 @@ public class NotifyService {
     private final Clock systemClock;
 
     public NotifyResponse publishNotifyPayload(NotifyRequest request) {
+        // Validate input
+        if (ObjectUtils.isEmpty(request.licensePlate())) {
+            log.error("License plate is required.");
+            throw new InvalidException("License plate is required.");
+        }
+
         // Build message payload
         NotifyPayload payload = buildPayload(request);
 
@@ -60,7 +67,7 @@ public class NotifyService {
         NotifyPayload payload = new NotifyPayload();
         payload.setNotifyId(UUID.randomUUID());
         payload.setLicensePlate(request.licensePlate());
-        payload.setUploadId(UUID.fromString(request.uploadId()));
+        payload.setUploadId(ObjectUtils.isEmpty(request.uploadId()) ? null : UUID.fromString(request.uploadId()));
         payload.setRemark(request.remark());
         payload.setVehicleType(ObjectUtils.isEmpty(request.vehicleType()) ? VehicleType.CAR.name() : VehicleType.fromString(request.vehicleType()).name());
         payload.setStatus(Status.PENDING.name());
