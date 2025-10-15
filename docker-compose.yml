@@ -39,7 +39,7 @@ services:
       - "9001:9001"
   app:
     build: .
-    container_name: dl_detection_notify_service
+    container_name: dl_app
     ports:
       - "8080:8080"
     depends_on:
@@ -47,17 +47,17 @@ services:
       - rabbitmq
       - minio
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      RABBIT_HOST: http://rabbitmq
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/detection_notification
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      RABBIT_HOST: rabbitmq
       RABBIT_PORT: 5672
-      RABBIT_USERNAME: ${RABBIT_USER}
-      RABBIT_PASSWORD: ${RABBIT_PASSWORD}
-      MINIO_URL: http://minio:9000
-      MINIO_ACCESSKEY: ${MINIO_USER}
-      MINIO_SECRETKEY: ${MINIO_PASSWORD}
-      MINIO_BUCKET: ${MINIO_BUCKET}
+      RABBIT_USERNAME: ${RABBIT_USER:-rabbitmq}
+      RABBIT_PASSWORD: ${RABBIT_PASSWORD:-rabbitmq}
+      MINIO_URL: http://minio:9001
+      MINIO_ACCESSKEY: ${MINIO_USER:-minioadmin}
+      MINIO_SECRETKEY: ${MINIO_PASSWORD:-miniopassword}
+      MINIO_BUCKET: detection-notification
       API_KEY_NAME: ${API_KEY}
       API_KEY_VALUE: ${API_VALUE}
       DISCORD_CHANNEL: ${DISCORD_CHANNEL_ID}

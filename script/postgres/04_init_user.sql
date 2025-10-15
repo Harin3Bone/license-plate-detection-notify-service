@@ -3,7 +3,7 @@ CREATE USER <POSTGRES_USER> WITH PASSWORD '<POSTGRES_PASSWORD>';
 -- ALTER USER detection_svc WITH PASSWORD 'YOUR_RESET_PASSWORD_HERE';
 
 -- Grant connect on the database to the service user
-GRANT CONNECT ON DATABASE <POSTGRES_DB> TO <POSTGRES_USER>;
+GRANT CONNECT ON DATABASE detection_notification TO detection_svc;
 
 -- Grant all privileges on the public schema and tables to the service user
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO <POSTGRES_USER>;
@@ -21,6 +21,6 @@ SELECT tb.grantee        AS user_name
      , tb.privilege_type AS permssion
      , tb.is_grantable   AS grant_option
 FROM information_schema.table_privileges tb
-WHERE tb.table_catalog = '<POSTGRES_DB>'
+WHERE tb.table_catalog = 'detection-notification'
   AND tb.table_schema = 'public'
   AND tb.grantee = '<POSTGRES_USER>';
