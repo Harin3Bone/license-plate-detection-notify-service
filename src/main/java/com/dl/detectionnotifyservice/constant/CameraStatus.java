@@ -7,6 +7,7 @@ public enum CameraStatus {
 
     ACTIVE,
     INACTIVE,
-    MAINTENANCE;
+    MAINTENANCE,
+    DELETED;
 
 }

@@ -2,6 +2,7 @@ package com.dl.detectionnotifyservice.controller;
 
 import com.dl.detectionnotifyservice.exception.InvalidException;
 import com.dl.detectionnotifyservice.exception.MediaUploadException;
+import com.dl.detectionnotifyservice.exception.NotFoundException;
 import com.dl.detectionnotifyservice.model.rest.ExceptionResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,15 @@ public class GlobalExceptionHandler {
         return new ExceptionResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "An unexpected error occurred: " + ex.getMessage()
+        );
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ExceptionResponse handleNotFoundException(NotFoundException ex) {
+        return new ExceptionResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage()
         );
     }
 
