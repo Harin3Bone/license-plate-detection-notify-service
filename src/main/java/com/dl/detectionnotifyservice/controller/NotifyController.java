@@ -24,6 +24,7 @@ public class NotifyController {
     @ResponseStatus(HttpStatus.OK)
     public NotifyResponse sendNotify(@RequestBody NotifyRequest request) {
         log.info("Received request to send notification");
+        notifyService.verifyRequest(request);
         return notifyService.publishNotifyPayload(request);
     }
 }

@@ -41,13 +41,20 @@ public class NotifyService {
     private final NotifyHistoryRepository notifyHistoryRepository;
     private final Clock systemClock;
 
-    public NotifyResponse publishNotifyPayload(NotifyRequest request) {
-        // Validate input
+    public void verifyRequest(NotifyRequest request) {
+        // Validate required fields
         if (ObjectUtils.isEmpty(request.licensePlate())) {
             log.error("License plate is required.");
             throw new InvalidException("License plate is required.");
         }
 
+        if (ObjectUtils.isEmpty(request.cameraId())) {
+            log.error("Camera ID is required.");
+            throw new InvalidException("Camera ID is required.");
+        }
+    }
+
+    public NotifyResponse publishNotifyPayload(NotifyRequest request) {
         // Build message payload
         NotifyPayload payload = buildPayload(request);
 
@@ -68,6 +75,7 @@ public class NotifyService {
         payload.setNotifyId(UUID.randomUUID());
         payload.setLicensePlate(request.licensePlate());
         payload.setUploadId(ObjectUtils.isEmpty(request.uploadId()) ? null : UUID.fromString(request.uploadId()));
+        payload.setCameraId(UUID.fromString(request.cameraId()));
         payload.setRemark(request.remark());
         payload.setVehicleType(ObjectUtils.isEmpty(request.vehicleType()) ? VehicleType.CAR.name() : VehicleType.fromString(request.vehicleType()).name());
         payload.setStatus(Status.PENDING.name());
