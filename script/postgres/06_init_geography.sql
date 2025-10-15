@@ -1,6 +1,6 @@
 
 -- Init province data
-INSERT INTO provinces (province_id, province_code, province_name_en, province_name_th) VALUES
+INSERT INTO province (province_id, province_code, province_name_en, province_name_th) VALUES
 (1, 10, 'Bangkok', 'กรุงเทพมหานคร'),
 (2, 11, 'Samut Prakan', 'สมุทรปราการ'),
 (3, 12, 'Nonthaburi', 'นนทบุรี'),
@@ -81,7 +81,7 @@ INSERT INTO provinces (province_id, province_code, province_name_en, province_na
 ;
 
 -- Init district data
-INSERT INTO public.districts (district_id, province_code, district_code, district_name_en, district_name_th, postal_code) VALUES
+INSERT INTO public.district (district_id, province_code, district_code, district_name_en, district_name_th, postal_code) VALUES
 (1, 10, 1001, 'Phra Nakhon', 'พระนคร', '10200'),
 (2, 10, 1002, 'Dusit', 'ดุสิต', '10300'),
 (3, 10, 1003, 'Nong Chok', 'หนองจอก', '10530'),
@@ -1013,7 +1013,7 @@ INSERT INTO public.districts (district_id, province_code, district_code, distric
 ;
 
 -- Init sub-district data
-INSERT INTO public.sub_districts (sub_district_id, province_code, district_code, sub_district_code, sub_district_name_en, sub_district_name_th, postal_code) VALUES
+INSERT INTO public.sub_district (sub_district_id, province_code, district_code, sub_district_code, sub_district_name_en, sub_district_name_th, postal_code) VALUES
 (1, 10, 1001, 100101, 'Phra Borom Maha Ratchawang', 'พระบรมมหาราชวัง', '10200'),
 (2, 10, 1001, 100102, 'Wang Burapha Phirom', 'วังบูรพาภิรมย์', '10200'),
 (3, 10, 1001, 100103, 'Wat Ratchabophit', 'วัดราชบพิธ', '10200'),
