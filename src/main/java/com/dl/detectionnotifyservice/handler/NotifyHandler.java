@@ -27,7 +27,7 @@ public class NotifyHandler implements  BaseHandler<NotifyPayload> {
         NotifyHistory history = notifyService.saveNotifyHistory(payload);
 
         log.debug("Begin push notification to server.");
-        Status notifyStatus = notifyService.pushNotification(payload.getNotifyMessage());
+        Status notifyStatus = notifyService.pushNotification(history.getNotifyMessage());
 
         log.debug("Update notify history status to {}.", notifyStatus);
         notifyService.updateNotifyHistoryStatus(history, notifyStatus);

@@ -5,7 +5,6 @@ public record NotifyRequest(
         String uploadId,
         String cameraId,
         String remark,
-        String vehicleType,
-        String language
+        String vehicleType
 ) {
 }

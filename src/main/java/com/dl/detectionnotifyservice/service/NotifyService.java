@@ -2,11 +2,13 @@ package com.dl.detectionnotifyservice.service;
 
 import com.dl.detectionnotifyservice.constant.Status;
 import com.dl.detectionnotifyservice.constant.VehicleType;
+import com.dl.detectionnotifyservice.entity.Camera;
 import com.dl.detectionnotifyservice.entity.NotifyHistory;
 import com.dl.detectionnotifyservice.exception.InvalidException;
 import com.dl.detectionnotifyservice.model.payload.NotifyPayload;
 import com.dl.detectionnotifyservice.model.rest.NotifyRequest;
 import com.dl.detectionnotifyservice.model.rest.NotifyResponse;
+import com.dl.detectionnotifyservice.repository.CameraRepository;
 import com.dl.detectionnotifyservice.repository.NotifyHistoryRepository;
 import com.dl.detectionnotifyservice.util.DateFormatUtil;
 import discord4j.common.util.Snowflake;
@@ -30,8 +32,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class NotifyService {
 
-    private static final String NOTIFY_MSG_TEMPLATE_EN = "Vehicle license plate [%s] has been detected illegally parked at %s";
-    private static final String NOTIFY_MSG_TEMPLATE_TH = "พาหนะป้ายทะเบียน [%s] ถูกตรวจพบว่ามีการจอดในพื้นที่ผิดกฏหมาย ณ เวลา %s";
+    private static final String NOTIFY_MSG_TEMPLATE_TH = "พาหนะป้ายทะเบียน '%s' ถูกตรวจพบว่ามีการจอดในพื้นที่ผิดกฏหมาย ณ สถานที่ '%s' เวลา %s";
+    private static final String ADDRESS_PLACEHOLDER = "%s %s %s %s";
 
     private final Queue notifyQueue;
     private final RabbitTemplate rabbitTemplate;
@@ -39,6 +41,7 @@ public class NotifyService {
     private final Snowflake gatewayDiscordChannel;
 
     private final NotifyHistoryRepository notifyHistoryRepository;
+    private final CameraRepository cameraRepository;
     private final Clock systemClock;
 
     public void verifyRequest(NotifyRequest request) {
@@ -52,6 +55,12 @@ public class NotifyService {
             log.error("Camera ID is required.");
             throw new InvalidException("Camera ID is required.");
         }
+
+        // Verify camera ID exists
+        if (!cameraRepository.existsById(UUID.fromString(request.cameraId()))) {
+            log.error("Camera ID not found: {}", request.cameraId());
+            throw new InvalidException("Camera ID not found: " + request.cameraId());
+        }
     }
 
     public NotifyResponse publishNotifyPayload(NotifyRequest request) {
@@ -62,14 +71,11 @@ public class NotifyService {
         rabbitTemplate.convertAndSend(notifyQueue.getName(), payload);
 
         // Populate API response
-        return new NotifyResponse(payload.getNotifyId(), payload.getStatus(), payload.getNotifyMessage());
+        return new NotifyResponse(payload.getNotifyId(), payload.getStatus());
     }
 
     private NotifyPayload buildPayload(NotifyRequest request) {
         ZonedDateTime currentDateTime = ZonedDateTime.now(systemClock);
-        String notifyMessage = ObjectUtils.isEmpty(request.language()) || request.language().equalsIgnoreCase("th")
-                ? String.format(NOTIFY_MSG_TEMPLATE_TH, request.licensePlate(), DateFormatUtil.zonedDateTimeToString(currentDateTime, systemClock.getZone()))
-                : String.format(NOTIFY_MSG_TEMPLATE_EN, request.licensePlate(), DateFormatUtil.zonedDateTimeToString(currentDateTime, systemClock.getZone()));
 
         NotifyPayload payload = new NotifyPayload();
         payload.setNotifyId(UUID.randomUUID());
@@ -79,7 +85,6 @@ public class NotifyService {
         payload.setRemark(request.remark());
         payload.setVehicleType(ObjectUtils.isEmpty(request.vehicleType()) ? VehicleType.CAR.name() : VehicleType.fromString(request.vehicleType()).name());
         payload.setStatus(Status.PENDING.name());
-        payload.setNotifyMessage(notifyMessage);
         payload.setCurrentDateTime(currentDateTime);
 
         return payload;
@@ -106,7 +111,7 @@ public class NotifyService {
         NotifyHistory entity = new NotifyHistory();
         entity.setHistoryId(payload.getNotifyId());
         entity.setLicensePlate(payload.getLicensePlate());
-        entity.setNotifyMessage(payload.getNotifyMessage());
+        entity.setNotifyMessage(buildNotifyMessage(payload));
         entity.setUploadId(payload.getUploadId());
         entity.setRemark(payload.getRemark());
         entity.setStatus(payload.getStatus());
@@ -116,6 +121,24 @@ public class NotifyService {
 
         return entity;
     }
+
+    private String buildNotifyMessage(NotifyPayload payload) {
+        // Format address from camera details
+        Camera camera = cameraRepository.findById(payload.getCameraId())
+                .orElseThrow(() -> new InvalidException("Camera ID not found: " + payload.getCameraId()));
+        String address = String.format(ADDRESS_PLACEHOLDER, camera.getAddress(), camera.getSubDistrict(), camera.getDistrict(), camera.getProvince());
+
+        // Clean up license plate string
+        String formatLicensePlate = payload.getLicensePlate()
+                .replaceAll("[\\[\\],']", "")
+                .trim();
+
+        // Format notification time
+        String notifyTime = DateFormatUtil.zonedDateTimeToString(payload.getCurrentDateTime(), systemClock.getZone());
+
+        return String.format(NOTIFY_MSG_TEMPLATE_TH, formatLicensePlate, address, notifyTime);
+    }
+
 
     public Status pushNotification(String message) {
         Status status;

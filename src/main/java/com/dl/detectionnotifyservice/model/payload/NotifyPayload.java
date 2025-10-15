@@ -22,7 +22,6 @@ public class NotifyPayload implements Serializable {
     private String remark;
     private String vehicleType;
     private String status;
-    private String notifyMessage;
     private ZonedDateTime currentDateTime;
 
 }

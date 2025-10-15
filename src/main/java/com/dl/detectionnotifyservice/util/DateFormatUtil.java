@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DateFormatUtil {
 
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static String zonedDateTimeToString(ZonedDateTime in, ZoneId zoneId) {
         return in.withZoneSameInstant(zoneId).format(dateTimeFormatter);
