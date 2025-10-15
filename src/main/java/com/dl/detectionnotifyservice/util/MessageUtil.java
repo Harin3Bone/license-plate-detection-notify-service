@@ -21,8 +21,8 @@ public class MessageUtil {
         String formatSubDistrict;
         String formatDistrict;
         if ("กรุงเทพมหานคร".equals(province)) {
-            formatSubDistrict = "เขต" + subDistrict;
-            formatDistrict = "แขวง" + district;
+            formatSubDistrict = "แขวง" + district;
+            formatDistrict = "เขต" + subDistrict;
         } else {
             formatSubDistrict = "ตำบล" + subDistrict;
             formatDistrict = "อำเภอ" + district;
