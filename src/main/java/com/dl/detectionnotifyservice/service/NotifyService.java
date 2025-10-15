@@ -27,13 +27,12 @@ import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+import static com.dl.detectionnotifyservice.util.MessageUtil.buildNotifyMessage;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotifyService {
-
-    private static final String NOTIFY_MSG_TEMPLATE_TH = "พาหนะป้ายทะเบียน '%s' ถูกตรวจพบว่ามีการจอดในพื้นที่ผิดกฏหมาย ณ สถานที่ '%s' เวลา %s";
-    private static final String ADDRESS_PLACEHOLDER = "%s %s %s %s";
 
     private final Queue notifyQueue;
     private final RabbitTemplate rabbitTemplate;
@@ -92,7 +91,21 @@ public class NotifyService {
 
     @Transactional
     public NotifyHistory saveNotifyHistory(NotifyPayload payload) {
-        NotifyHistory history = mapToEntity(payload);
+        // Fetch camera details for retrieve address
+        Camera camera = cameraRepository.findById(payload.getCameraId())
+                .orElseThrow(() -> new InvalidException("Camera ID not found: " + payload.getCameraId()));
+
+        // Format notify message
+        String notifyMessage = buildNotifyMessage(
+                payload.getLicensePlate(), camera.getAddress(), camera.getSubDistrict(),
+                camera.getDistrict(), camera.getProvince(), payload.getCurrentDateTime(),
+                systemClock
+        );
+
+        // Map payload to entity and save to database
+        NotifyHistory history = mapToEntity(payload, notifyMessage);
+
+        // Save to database
         notifyHistoryRepository.save(history);
 
         return history;
@@ -107,11 +120,11 @@ public class NotifyService {
         notifyHistoryRepository.save(history);
     }
 
-    private NotifyHistory mapToEntity(NotifyPayload payload) {
+    private NotifyHistory mapToEntity(NotifyPayload payload, String notifyMessage) {
         NotifyHistory entity = new NotifyHistory();
         entity.setHistoryId(payload.getNotifyId());
         entity.setLicensePlate(payload.getLicensePlate());
-        entity.setNotifyMessage(buildNotifyMessage(payload));
+        entity.setNotifyMessage(notifyMessage);
         entity.setUploadId(payload.getUploadId());
         entity.setRemark(payload.getRemark());
         entity.setStatus(payload.getStatus());
@@ -121,24 +134,6 @@ public class NotifyService {
 
         return entity;
     }
-
-    private String buildNotifyMessage(NotifyPayload payload) {
-        // Format address from camera details
-        Camera camera = cameraRepository.findById(payload.getCameraId())
-                .orElseThrow(() -> new InvalidException("Camera ID not found: " + payload.getCameraId()));
-        String address = String.format(ADDRESS_PLACEHOLDER, camera.getAddress(), camera.getSubDistrict(), camera.getDistrict(), camera.getProvince());
-
-        // Clean up license plate string
-        String formatLicensePlate = payload.getLicensePlate()
-                .replaceAll("[\\[\\],']", "")
-                .trim();
-
-        // Format notification time
-        String notifyTime = DateFormatUtil.zonedDateTimeToString(payload.getCurrentDateTime(), systemClock.getZone());
-
-        return String.format(NOTIFY_MSG_TEMPLATE_TH, formatLicensePlate, address, notifyTime);
-    }
-
 
     public Status pushNotification(String message) {
         Status status;
