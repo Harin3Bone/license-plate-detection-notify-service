@@ -36,7 +36,9 @@ public class NotifyHandler implements  BaseHandler<NotifyPayload> {
         List<MediaEvidence> evidences = uploadService.getMediaEvidences(payload.getUploadId());
 
         // Limitation send only 1 file due to Discord API limit
-        File delegateFile = uploadService.getFileFromMinIO(evidences.getFirst().getFilePath());
+        File delegateFile = evidences.isEmpty()
+                ? null
+                : uploadService.getFileFromMinIO(evidences.getFirst().getFilePath());
 
         log.debug("Begin push notification to server.");
         Status notifyStatus = notifyService.pushNotification(history.getNotifyMessage(), delegateFile);
