@@ -10,11 +10,12 @@ import com.dl.detectionnotifyservice.model.rest.NotifyRequest;
 import com.dl.detectionnotifyservice.model.rest.NotifyResponse;
 import com.dl.detectionnotifyservice.repository.CameraRepository;
 import com.dl.detectionnotifyservice.repository.NotifyHistoryRepository;
-import com.dl.detectionnotifyservice.util.DateFormatUtil;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.spec.MessageCreateFields;
+import discord4j.core.spec.MessageCreateSpec;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.UUID;
@@ -135,14 +139,25 @@ public class NotifyService {
         return entity;
     }
 
-    public Status pushNotification(String message) {
+    public Status pushNotification(String message, File file) {
         Status status;
         try {
             Channel channel = discordClient.getChannelById(gatewayDiscordChannel).block();
             if (channel instanceof TextChannel textChannel) {
-                textChannel.createMessage(message).block();
+                if (file != null) {
+                    InputStream inputStream = Files.newInputStream(file.toPath());
+                    MessageCreateFields.File discordFile = MessageCreateFields.File.of(file.getName(), inputStream);
+
+                    textChannel.createMessage(MessageCreateSpec.builder()
+                                    .content(message)
+                                    .addFile(discordFile)
+                                    .build())
+                            .block();
+                } else {
+                    textChannel.createMessage(message).block();
+                }
             } else {
-                log.error("The specified channel is not a text channel. Cannot send message.");
+                log.error("The specified channel is not a text channel. Cannot send text message.");
                 return Status.FAILURE;
             }
 
