@@ -21,6 +21,6 @@ SELECT tb.grantee        AS user_name
      , tb.privilege_type AS permssion
      , tb.is_grantable   AS grant_option
 FROM information_schema.table_privileges tb
-WHERE tb.table_catalog = 'detection-notification'
+WHERE tb.table_catalog = 'detection_notification'
   AND tb.table_schema = 'public'
   AND tb.grantee = '<POSTGRES_USER>';

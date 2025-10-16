@@ -21,13 +21,12 @@ public class MessageUtil {
         String formatSubDistrict;
         String formatDistrict;
         if ("กรุงเทพมหานคร".equals(province)) {
-            formatSubDistrict = "แขวง" + district;
-            formatDistrict = "เขต" + subDistrict;
+            formatSubDistrict = "แขวง" + subDistrict;
+            formatDistrict = "เขต" + district;
         } else {
             formatSubDistrict = "ตำบล" + subDistrict;
             formatDistrict = "อำเภอ" + district;
         }
-
         String formatAddress = String.format(ADDRESS_PLACEHOLDER, address, formatSubDistrict, formatDistrict, province);
 
         // Clean up license plate string

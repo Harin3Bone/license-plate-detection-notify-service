@@ -122,6 +122,8 @@ public class UploadService {
             );
 
             File tempFile = File.createTempFile("minio-", "-" + filePath.substring(filePath.lastIndexOf('.')));
+            tempFile.deleteOnExit();
+
             try (FileOutputStream outputStream = new FileOutputStream(tempFile)) {
                 byte[] buffer = new byte[1024];
                 int bytesRead;

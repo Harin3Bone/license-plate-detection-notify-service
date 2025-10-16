@@ -41,7 +41,14 @@ public class NotifyHandler implements  BaseHandler<NotifyPayload> {
                 : uploadService.getFileFromMinIO(evidences.getFirst().getFilePath());
 
         log.debug("Begin push notification to server.");
-        Status notifyStatus = notifyService.pushNotification(history.getNotifyMessage(), delegateFile);
+        Status notifyStatus;
+        if (delegateFile == null) {
+            log.warn("No media evidence found for uploadId: {}", payload.getUploadId());
+            notifyStatus = notifyService.pushNotification(history.getNotifyMessage());
+        } else {
+            log.info("Begin push notification to server.");
+            notifyStatus = notifyService.pushNotification(history.getNotifyMessage(), delegateFile);
+        }
 
         log.debug("Update notify history status to {}.", notifyStatus);
         notifyService.updateNotifyHistoryStatus(history, notifyStatus);

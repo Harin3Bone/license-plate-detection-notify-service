@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.time.Clock;
@@ -59,8 +60,17 @@ public class NotifyService {
             throw new InvalidException("Camera ID is required.");
         }
 
+        // Verify camera ID format
+        UUID cameraId;
+        try {
+            cameraId = UUID.fromString(request.cameraId());
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid camera ID format: {}", request.cameraId());
+            throw new InvalidException("Camera ID is not a valid UUID: " + request.cameraId());
+        }
+
         // Verify camera ID exists
-        if (!cameraRepository.existsById(UUID.fromString(request.cameraId()))) {
+        if (!cameraRepository.existsById(cameraId)) {
             log.error("Camera ID not found: {}", request.cameraId());
             throw new InvalidException("Camera ID not found: " + request.cameraId());
         }
@@ -139,23 +149,12 @@ public class NotifyService {
         return entity;
     }
 
-    public Status pushNotification(String message, File file) {
+    public Status pushNotification(String message) {
         Status status;
         try {
             Channel channel = discordClient.getChannelById(gatewayDiscordChannel).block();
             if (channel instanceof TextChannel textChannel) {
-                if (file != null) {
-                    InputStream inputStream = Files.newInputStream(file.toPath());
-                    MessageCreateFields.File discordFile = MessageCreateFields.File.of(file.getName(), inputStream);
-
-                    textChannel.createMessage(MessageCreateSpec.builder()
-                                    .content(message)
-                                    .addFile(discordFile)
-                                    .build())
-                            .block();
-                } else {
-                    textChannel.createMessage(message).block();
-                }
+                textChannel.createMessage(message).block();
             } else {
                 log.error("The specified channel is not a text channel. Cannot send text message.");
                 return Status.FAILURE;
@@ -166,6 +165,38 @@ public class NotifyService {
             log.error("Failed to push notification to Discord: {}", e.getMessage(), e);
             status = Status.FAILURE;
         }
+
+        return status;
+    }
+
+    public Status pushNotification(String message, File file) {
+        Status status;
+        try {
+            Channel channel = discordClient.getChannelById(gatewayDiscordChannel).block();
+            if (channel instanceof TextChannel textChannel) {
+                try (InputStream inputStream = Files.newInputStream(file.toPath())) {
+                    MessageCreateFields.File discordFile = MessageCreateFields.File.of(file.getName(), inputStream);
+
+                    textChannel.createMessage(MessageCreateSpec.builder()
+                                    .content(message)
+                                    .addFile(discordFile)
+                                    .build())
+                            .block();
+                }
+            } else {
+                log.error("The specified channel is not a text channel. Cannot send text message with image.");
+                status = Status.FAILURE;
+            }
+
+            status = Status.SUCCESS;
+        } catch (IOException e) {
+            log.error("Failed to read the image file: {}", e.getMessage(), e);
+            status = Status.FAILURE;
+        } catch (Exception e) {
+            log.error("Failed to push notification to Discord: {}", e.getMessage(), e);
+            status = Status.FAILURE;
+        }
+
 
         return status;
     }
