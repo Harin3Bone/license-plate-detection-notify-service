@@ -18,10 +18,10 @@ public class NotifyPayload implements Serializable {
     private UUID notifyId;
     private String licensePlate;
     private UUID uploadId;
+    private UUID cameraId;
     private String remark;
     private String vehicleType;
     private String status;
-    private String notifyMessage;
     private ZonedDateTime currentDateTime;
 
 }

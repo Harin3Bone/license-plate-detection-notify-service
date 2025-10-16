@@ -4,7 +4,6 @@ import java.util.UUID;
 
 public record NotifyResponse(
         UUID notifyId,
-        String status,
-        String message
+        String status
 ) {
 }

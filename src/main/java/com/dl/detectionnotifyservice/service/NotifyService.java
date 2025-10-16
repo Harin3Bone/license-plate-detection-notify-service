@@ -2,17 +2,20 @@ package com.dl.detectionnotifyservice.service;
 
 import com.dl.detectionnotifyservice.constant.Status;
 import com.dl.detectionnotifyservice.constant.VehicleType;
+import com.dl.detectionnotifyservice.entity.Camera;
 import com.dl.detectionnotifyservice.entity.NotifyHistory;
 import com.dl.detectionnotifyservice.exception.InvalidException;
 import com.dl.detectionnotifyservice.model.payload.NotifyPayload;
 import com.dl.detectionnotifyservice.model.rest.NotifyRequest;
 import com.dl.detectionnotifyservice.model.rest.NotifyResponse;
+import com.dl.detectionnotifyservice.repository.CameraRepository;
 import com.dl.detectionnotifyservice.repository.NotifyHistoryRepository;
-import com.dl.detectionnotifyservice.util.DateFormatUtil;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.spec.MessageCreateFields;
+import discord4j.core.spec.MessageCreateSpec;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,17 +24,20 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.UUID;
+
+import static com.dl.detectionnotifyservice.util.MessageUtil.buildNotifyMessage;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotifyService {
-
-    private static final String NOTIFY_MSG_TEMPLATE_EN = "Vehicle license plate [%s] has been detected illegally parked at %s";
-    private static final String NOTIFY_MSG_TEMPLATE_TH = "พาหนะป้ายทะเบียน [%s] ถูกตรวจพบว่ามีการจอดในพื้นที่ผิดกฏหมาย ณ เวลา %s";
 
     private final Queue notifyQueue;
     private final RabbitTemplate rabbitTemplate;
@@ -39,15 +45,38 @@ public class NotifyService {
     private final Snowflake gatewayDiscordChannel;
 
     private final NotifyHistoryRepository notifyHistoryRepository;
+    private final CameraRepository cameraRepository;
     private final Clock systemClock;
 
-    public NotifyResponse publishNotifyPayload(NotifyRequest request) {
-        // Validate input
+    public void verifyRequest(NotifyRequest request) {
+        // Validate required fields
         if (ObjectUtils.isEmpty(request.licensePlate())) {
             log.error("License plate is required.");
             throw new InvalidException("License plate is required.");
         }
 
+        if (ObjectUtils.isEmpty(request.cameraId())) {
+            log.error("Camera ID is required.");
+            throw new InvalidException("Camera ID is required.");
+        }
+
+        // Verify camera ID format
+        UUID cameraId;
+        try {
+            cameraId = UUID.fromString(request.cameraId());
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid camera ID format: {}", request.cameraId());
+            throw new InvalidException("Camera ID is not a valid UUID: " + request.cameraId());
+        }
+
+        // Verify camera ID exists
+        if (!cameraRepository.existsById(cameraId)) {
+            log.error("Camera ID not found: {}", request.cameraId());
+            throw new InvalidException("Camera ID not found: " + request.cameraId());
+        }
+    }
+
+    public NotifyResponse publishNotifyPayload(NotifyRequest request) {
         // Build message payload
         NotifyPayload payload = buildPayload(request);
 
@@ -55,23 +84,20 @@ public class NotifyService {
         rabbitTemplate.convertAndSend(notifyQueue.getName(), payload);
 
         // Populate API response
-        return new NotifyResponse(payload.getNotifyId(), payload.getStatus(), payload.getNotifyMessage());
+        return new NotifyResponse(payload.getNotifyId(), payload.getStatus());
     }
 
     private NotifyPayload buildPayload(NotifyRequest request) {
         ZonedDateTime currentDateTime = ZonedDateTime.now(systemClock);
-        String notifyMessage = ObjectUtils.isEmpty(request.language()) || request.language().equalsIgnoreCase("th")
-                ? String.format(NOTIFY_MSG_TEMPLATE_TH, request.licensePlate(), DateFormatUtil.zonedDateTimeToString(currentDateTime, systemClock.getZone()))
-                : String.format(NOTIFY_MSG_TEMPLATE_EN, request.licensePlate(), DateFormatUtil.zonedDateTimeToString(currentDateTime, systemClock.getZone()));
 
         NotifyPayload payload = new NotifyPayload();
         payload.setNotifyId(UUID.randomUUID());
         payload.setLicensePlate(request.licensePlate());
         payload.setUploadId(ObjectUtils.isEmpty(request.uploadId()) ? null : UUID.fromString(request.uploadId()));
+        payload.setCameraId(UUID.fromString(request.cameraId()));
         payload.setRemark(request.remark());
         payload.setVehicleType(ObjectUtils.isEmpty(request.vehicleType()) ? VehicleType.CAR.name() : VehicleType.fromString(request.vehicleType()).name());
         payload.setStatus(Status.PENDING.name());
-        payload.setNotifyMessage(notifyMessage);
         payload.setCurrentDateTime(currentDateTime);
 
         return payload;
@@ -79,7 +105,21 @@ public class NotifyService {
 
     @Transactional
     public NotifyHistory saveNotifyHistory(NotifyPayload payload) {
-        NotifyHistory history = mapToEntity(payload);
+        // Fetch camera details for retrieve address
+        Camera camera = cameraRepository.findById(payload.getCameraId())
+                .orElseThrow(() -> new InvalidException("Camera ID not found: " + payload.getCameraId()));
+
+        // Format notify message
+        String notifyMessage = buildNotifyMessage(
+                payload.getLicensePlate(), camera.getAddress(), camera.getSubDistrict(),
+                camera.getDistrict(), camera.getProvince(), payload.getCurrentDateTime(),
+                systemClock
+        );
+
+        // Map payload to entity and save to database
+        NotifyHistory history = mapToEntity(payload, notifyMessage);
+
+        // Save to database
         notifyHistoryRepository.save(history);
 
         return history;
@@ -94,11 +134,11 @@ public class NotifyService {
         notifyHistoryRepository.save(history);
     }
 
-    private NotifyHistory mapToEntity(NotifyPayload payload) {
+    private NotifyHistory mapToEntity(NotifyPayload payload, String notifyMessage) {
         NotifyHistory entity = new NotifyHistory();
         entity.setHistoryId(payload.getNotifyId());
         entity.setLicensePlate(payload.getLicensePlate());
-        entity.setNotifyMessage(payload.getNotifyMessage());
+        entity.setNotifyMessage(notifyMessage);
         entity.setUploadId(payload.getUploadId());
         entity.setRemark(payload.getRemark());
         entity.setStatus(payload.getStatus());
@@ -116,7 +156,7 @@ public class NotifyService {
             if (channel instanceof TextChannel textChannel) {
                 textChannel.createMessage(message).block();
             } else {
-                log.error("The specified channel is not a text channel. Cannot send message.");
+                log.error("The specified channel is not a text channel. Cannot send text message.");
                 return Status.FAILURE;
             }
 
@@ -125,6 +165,38 @@ public class NotifyService {
             log.error("Failed to push notification to Discord: {}", e.getMessage(), e);
             status = Status.FAILURE;
         }
+
+        return status;
+    }
+
+    public Status pushNotification(String message, File file) {
+        Status status;
+        try {
+            Channel channel = discordClient.getChannelById(gatewayDiscordChannel).block();
+            if (channel instanceof TextChannel textChannel) {
+                try (InputStream inputStream = Files.newInputStream(file.toPath())) {
+                    MessageCreateFields.File discordFile = MessageCreateFields.File.of(file.getName(), inputStream);
+
+                    textChannel.createMessage(MessageCreateSpec.builder()
+                                    .content(message)
+                                    .addFile(discordFile)
+                                    .build())
+                            .block();
+                }
+            } else {
+                log.error("The specified channel is not a text channel. Cannot send text message with image.");
+                status = Status.FAILURE;
+            }
+
+            status = Status.SUCCESS;
+        } catch (IOException e) {
+            log.error("Failed to read the image file: {}", e.getMessage(), e);
+            status = Status.FAILURE;
+        } catch (Exception e) {
+            log.error("Failed to push notification to Discord: {}", e.getMessage(), e);
+            status = Status.FAILURE;
+        }
+
 
         return status;
     }

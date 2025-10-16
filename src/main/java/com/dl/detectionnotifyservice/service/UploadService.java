@@ -7,6 +7,8 @@ import com.dl.detectionnotifyservice.exception.MediaUploadException;
 import com.dl.detectionnotifyservice.model.payload.UploadPayload;
 import com.dl.detectionnotifyservice.model.rest.UploadResponse;
 import com.dl.detectionnotifyservice.repository.MediaEvidenceRepository;
+import io.minio.GetObjectArgs;
+import io.minio.GetObjectResponse;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import lombok.AllArgsConstructor;
@@ -21,9 +23,12 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.time.Clock;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -102,6 +107,36 @@ public class UploadService {
     public void saveMediaEvidence(UploadPayload payload) {
         MediaEvidence mediaEvidence = mapToEntity(payload);
         mediaEvidenceRepository.save(mediaEvidence);
+    }
+
+    public List<MediaEvidence> getMediaEvidences(UUID uploadId) {
+        return mediaEvidenceRepository.findMediaEvidenceByUploadId(uploadId);
+    }
+
+    public File getFileFromMinIO(String filePath) {
+        try {
+            GetObjectResponse response = minioClient.getObject(GetObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(filePath)
+                    .build()
+            );
+
+            File tempFile = File.createTempFile("minio-", "-" + filePath.substring(filePath.lastIndexOf('.')));
+            tempFile.deleteOnExit();
+
+            try (FileOutputStream outputStream = new FileOutputStream(tempFile)) {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = response.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+            }
+
+            return tempFile;
+        } catch (Exception e) {
+            log.error("Failed to get file from MinIO: {}", e.getMessage(), e);
+            return null;
+        }
     }
 
     private UploadPayload buildPayload(UploadResponse response) {
